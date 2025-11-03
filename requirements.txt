@@ -1,0 +1,5 @@
+aiohttp==3.9.1
+requests==2.31.0
+pyzipper==0.3.6
+yt-dlp>=2024.10.22
+spotdl>=4.2.0
