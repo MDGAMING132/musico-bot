@@ -120,9 +120,17 @@ python bot.py
 - Verify Telegram token is correct
 - Ensure FFmpeg installed successfully
 
+### YouTube "Sign in to confirm you're not a bot" error
+This is YouTube's anti-bot protection. The bot is configured to bypass it using:
+- Android player client emulation
+- Multiple fallback clients (android, web)
+- Mobile user agent
+- If still failing, try using Spotify links instead or wait 15-30 minutes
+
 ### Download failures
 - YouTube: yt-dlp may need update (`pip install --upgrade yt-dlp`)
 - Spotify: Check SpotDL logs for API issues
+- YouTube blocking: Bot automatically retries with different methods
 
 ### File detection issues
 - Fixed in this version (line 1327-1335 in bot.py)

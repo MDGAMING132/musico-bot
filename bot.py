@@ -306,6 +306,8 @@ class MusicTelegramBot:
                 'yt-dlp',
                 '-j',  # Get JSON output
                 '--no-playlist',  # Only get info for the single video
+                '--extractor-args', 'youtube:player_client=android,web',
+                '--user-agent', 'Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36',
                 url
             ]
             
@@ -354,6 +356,8 @@ class MusicTelegramBot:
                 '--dump-single-json',  # Get all info in one JSON object
                 '--yes-playlist',      # Ensure it treats it as a playlist
                 '--no-warnings',
+                '--extractor-args', 'youtube:player_client=android,web',
+                '--user-agent', 'Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36',
                 url
             ]
             
@@ -1127,7 +1131,8 @@ class MusicTelegramBot:
                 cmd = [
                     'yt-dlp',
                     '--ignore-errors', '--no-abort-on-error', '--no-check-certificate',
-                    '--user-agent', 'Mozilla/5.0',
+                    '--extractor-args', 'youtube:player_client=android,web',
+                    '--user-agent', 'Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36',
                     '-f', 'bestaudio[ext=m4a]/bestaudio/best',
                     '--audio-quality', '320K',
                     '--audio-format', 'mp3',
@@ -1141,7 +1146,8 @@ class MusicTelegramBot:
                 cmd = [
                     'yt-dlp',
                     '--ignore-errors', '--no-abort-on-error', '--no-check-certificate',
-                    '--user-agent', 'Mozilla/5.0',
+                    '--extractor-args', 'youtube:player_client=android,web',
+                    '--user-agent', 'Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36',
                     '-f', 'bestaudio[acodec^=opus]/bestaudio[ext=webm]/bestaudio[ext=m4a]/bestaudio/best',
                     '--audio-quality', '0',  # Lossless
                     '--audio-format', 'flac',
@@ -1162,7 +1168,8 @@ class MusicTelegramBot:
                     cmd = [
                         'yt-dlp',
                         '--ignore-errors', '--no-abort-on-error', '--no-check-certificate',
-                        '--user-agent', 'Mozilla/5.0',
+                        '--extractor-args', 'youtube:player_client=android,web',
+                        '--user-agent', 'Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36',
                         '-f', format_selector,  # Use the dynamic format selector
                         '--merge-output-format', 'mp4',
                         '--embed-metadata', '--embed-thumbnail', '--write-thumbnail',
