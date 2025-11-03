@@ -32,7 +32,6 @@ import glob
 import shlex
 import pyzipper  # Make sure to install: pip install pyzipper
 import unicodedata
-from aiohttp import web
 
 import aiohttp
 import requests
@@ -2080,31 +2079,9 @@ Send me a Spotify or YouTube link and I'll download it for you! 🎵"""
             # Don't call update_progress_message here to reduce spam
             # The periodic updater will handle it
 
-async def health_check(request):
-    """Health check endpoint for Render"""
-    return web.Response(text="OK", status=200)
-
-async def start_web_server():
-    """Start a simple web server for health checks"""
-    app = web.Application()
-    app.router.add_get('/health', health_check)
-    app.router.add_get('/', health_check)
-    
-    # Use PORT environment variable or default to 10000
-    port = int(os.environ.get('PORT', 10000))
-    runner = web.AppRunner(app)
-    await runner.setup()
-    site = web.TCPSite(runner, '0.0.0.0', port)
-    await site.start()
-    logger.info(f"Health check server started on port {port}")
-
 async def main():
     """Main function to run the bot"""
     try:
-        # Start health check server
-        asyncio.create_task(start_web_server())
-        
-        # Start bot
         bot = MusicTelegramBot()
         await bot.run()
     except ValueError as e:
@@ -2116,4 +2093,22 @@ async def main():
         logger.error(f"Bot error: {e}")
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    # Prevent multiple instances with lockfile
+    LOCK_FILE = "/tmp/musico_bot.lock"
+    
+    if os.path.exists(LOCK_FILE):
+        logger.error("Another bot instance is already running. Exiting.")
+        sys.exit(1)
+    
+    try:
+        # Create lockfile
+        with open(LOCK_FILE, "w") as f:
+            f.write(str(os.getpid()))
+        
+        # Run bot
+        asyncio.run(main())
+    finally:
+        # Clean up lockfile on exit
+        if os.path.exists(LOCK_FILE):
+            os.remove(LOCK_FILE)
+            logger.info("Lockfile removed. Clean shutdown.")

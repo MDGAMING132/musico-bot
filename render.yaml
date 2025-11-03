@@ -1,5 +1,5 @@
 services:
-  - type: web
+  - type: worker
     name: musico-telegram-bot
     env: python
     region: oregon
