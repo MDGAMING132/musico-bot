@@ -32,6 +32,7 @@ import glob
 import shlex
 import pyzipper  # Make sure to install: pip install pyzipper
 import unicodedata
+from aiohttp import web
 
 import aiohttp
 import requests
@@ -470,6 +471,23 @@ class MusicTelegramBot:
             logger.error(f"Error sending audio: {e}")
             return False
     
+    async def delete_webhook(self):
+        """Delete webhook to enable long polling"""
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(f"{self.api_url}/deleteWebhook", json={'drop_pending_updates': True}) as response:
+                    if response.status == 200:
+                        result = await response.json()
+                        if result.get('ok'):
+                            logger.info("Webhook deleted successfully. Long polling enabled.")
+                        return result.get('ok', False)
+                    else:
+                        logger.error(f"Failed to delete webhook: {response.status}")
+                        return False
+        except Exception as e:
+            logger.error(f"Error deleting webhook: {e}")
+            return False
+
     async def get_updates(self) -> List[Dict]:
         """Get updates from Telegram"""
         try:
@@ -480,7 +498,10 @@ class MusicTelegramBot:
             async with aiohttp.ClientSession() as session:
                 async with session.get(f"{self.api_url}/getUpdates", params=params) as response:
                     if response.status == 409:
-                        logger.error("409 Conflict: Another instance of the bot is running. Only one polling instance is allowed.")
+                        logger.error("409 Conflict: Another instance is running. Attempting to resolve...")
+                        # Try to delete webhook and retry
+                        await self.delete_webhook()
+                        await asyncio.sleep(2)
                         return []
                     if response.status == 200:
                         result = await response.json()
@@ -1847,6 +1868,10 @@ Send me a Spotify or YouTube link and I'll download it for you! 🎵"""
         """Main bot loop"""
         logger.info("Starting Music Telegram Bot...")
         logger.info(f"Using temp directory: {self.temp_dir}")
+        
+        # Delete any existing webhook to enable long polling
+        await self.delete_webhook()
+        await asyncio.sleep(2)
 
         while True:
             try:
@@ -2055,9 +2080,31 @@ Send me a Spotify or YouTube link and I'll download it for you! 🎵"""
             # Don't call update_progress_message here to reduce spam
             # The periodic updater will handle it
 
+async def health_check(request):
+    """Health check endpoint for Render"""
+    return web.Response(text="OK", status=200)
+
+async def start_web_server():
+    """Start a simple web server for health checks"""
+    app = web.Application()
+    app.router.add_get('/health', health_check)
+    app.router.add_get('/', health_check)
+    
+    # Use PORT environment variable or default to 10000
+    port = int(os.environ.get('PORT', 10000))
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, '0.0.0.0', port)
+    await site.start()
+    logger.info(f"Health check server started on port {port}")
+
 async def main():
     """Main function to run the bot"""
     try:
+        # Start health check server
+        asyncio.create_task(start_web_server())
+        
+        # Start bot
         bot = MusicTelegramBot()
         await bot.run()
     except ValueError as e:
